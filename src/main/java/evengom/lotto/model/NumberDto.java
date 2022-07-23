@@ -13,7 +13,14 @@ public class NumberDto {
 
     private List<Integer> rounds;
 
-    public NumberDto(int number) {
+    public NumberDto(int number, int duplication, List<Integer> rounds) {
         this.number = number;
+        this.duplication = duplication;
+        this.rounds = rounds;
+    }
+
+    public NumberDto(int number, int duplication) {
+        this.number = number;
+        this.duplication = duplication;
     }
 }

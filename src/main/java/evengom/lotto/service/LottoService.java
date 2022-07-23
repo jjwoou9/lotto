@@ -1,6 +1,8 @@
 package evengom.lotto.service;
 
+import evengom.lotto.domain.Lotto;
 import evengom.lotto.model.LottoDto;
+import evengom.lotto.model.NumberDto;
 
 import java.util.List;
 
@@ -12,5 +14,9 @@ public interface LottoService {
 
     LottoDto selectOne(int round);
 
-    List<Integer> selectMostFrequentNumbers();
+    List<NumberDto> selectMostFrequentNumbers();
+
+    void insert(Lotto lotto);
+
+    List<LottoDto> selectConsecutiveList();
 }

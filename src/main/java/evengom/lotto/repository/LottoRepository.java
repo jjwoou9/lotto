@@ -1,21 +1,17 @@
 package evengom.lotto.repository;
 
 import evengom.lotto.domain.Lotto;
-import evengom.lotto.model.LottoDto;
-import evengom.lotto.service.LottoService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
 import java.util.List;
 
 @Repository
+@RequiredArgsConstructor
 public class LottoRepository {
 
     private final EntityManager em;
-
-    public LottoRepository(EntityManager em) {
-        this.em = em;
-    }
 
     public List<Lotto> findAll() {
         return em.createQuery(
@@ -32,5 +28,10 @@ public class LottoRepository {
 
     public Lotto finOne(int round) {
         return em.find(Lotto.class, round);
+    }
+
+    public void insert(Lotto lotto) {
+        em.persist(lotto);
+        em.flush();
     }
 }
