@@ -68,6 +68,12 @@ public class LottoServiceImpl implements LottoService {
         lottoDtoList.stream().forEach(System.out::println);
 
         /*
+        DB 바뀌면 추가해야됨
+        LottoDto(round=1025, winnerCnt=4, prizeMoney=6118853344, first=8, second=9, third=20, fourth=25, fifth=29, sixth=33, bonus=7)
+        LottoDto(round=1024, winnerCnt=8, prizeMoney=3020323500, first=9, second=18, third=20, fourth=22, fifth=38, sixth=44, bonus=10)
+         */
+
+        /*
          *  list 가져온뒤 integer list로 변환
          *  1, 2번 retain 비교 => 같으면 3번 비교 => 4번 비교 ...
          *  2번부터 출발 2,3비교...
