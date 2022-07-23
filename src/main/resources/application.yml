@@ -4,6 +4,11 @@ spring:
     driver-class-name: org.mariadb.jdbc.Driver
     username: root
     password: qwer1234
+  devtools:
+    livereload:
+      enabled: true
+    freemarker:
+      cache: false
 
   jpa:
     hibernate:

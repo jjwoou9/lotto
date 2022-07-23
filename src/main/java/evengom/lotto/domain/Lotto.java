@@ -12,6 +12,8 @@ public class Lotto {
     @Id
     private int round;
 
+    private int prizeMoney;
+
     private int winnerCnt;
 
     private int first;

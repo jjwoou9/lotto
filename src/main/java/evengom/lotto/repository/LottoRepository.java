@@ -25,7 +25,8 @@ public class LottoRepository {
 
     public List<Lotto> findLatest(int count) {
         return em.createQuery(
-                "select  l from Lotto l", Lotto.class
+                "select  l from Lotto l " +
+                        "order by l.round desc", Lotto.class
         ).setMaxResults(count).getResultList();
     }
 

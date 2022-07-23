@@ -6,12 +6,13 @@ import evengom.lotto.repository.LottoRepository;
 import evengom.lotto.service.LottoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -21,13 +22,15 @@ public class LottoApiController {
 
     private final LottoService lottoService;
 
-    @GetMapping("/all")
+    @GetMapping("/")
     public List<LottoDto> getAllLottoList() {
+        log.info("get api/all {}" );
         return lottoService.selectAll();
     }
 
     @GetMapping("/list")
     public List<LottoDto> getLottoList(@RequestParam("count") int count) {
+        log.info("get api/list  param : " + count);
         return lottoService.selectLottoList(count);
     }
 
@@ -36,7 +39,31 @@ public class LottoApiController {
         return lottoService.selectOne(round);
     }
 
+    @GetMapping("/mostFrequent")
+    public List<Integer>  getMostFrequentNumbers(){
+        List<Integer> mostNumbers = lottoService.selectMostFrequentNumbers();
 
+
+
+        return mostNumbers;
+    }
+
+    @PostMapping("/")
+    public String insert(@ModelAttribute Lotto lotto){
+    return "";
+    }
+
+
+    /*
+    *  역대 가장 많이 뽑힌 번호.
+    *  1번중에 많이 뽑힌 ~보너스로 많이 뽑힌
+    *
+    *  계산용 모델 생성. num, 중복횟수, 회차List
+    *
+    *   연속된 회차에서 겹치는 번호 - 있는 경우 ? 번호
+    *
+    *  대충 위에 로직 합쳐서 예상 번호 ?
+    * */
 
 
 

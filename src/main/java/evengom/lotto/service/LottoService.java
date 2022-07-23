@@ -11,4 +11,6 @@ public interface LottoService {
     List<LottoDto> selectLottoList(int count);
 
     LottoDto selectOne(int round);
+
+    List<Integer> selectMostFrequentNumbers();
 }

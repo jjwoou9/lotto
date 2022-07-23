@@ -8,6 +8,7 @@ public class LottoDto {
 
     private int round;
     private int winnerCnt;
+    private int prizeMoney;
     private int first;
     private int second;
     private int third;
@@ -19,6 +20,7 @@ public class LottoDto {
     public LottoDto(Lotto lotto) {
         this.round = lotto.getRound();
         this.winnerCnt = lotto.getWinnerCnt();
+        this.prizeMoney = lotto.getPrizeMoney();
         this.first = lotto.getFirst();
         this.second = lotto.getSecond();
         this.third = lotto.getThird();
