@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -54,7 +55,7 @@ public class LottoApiController {
     }
 
     @PostMapping("/")
-    public String insert(@RequestBody Lotto lotto) {
+    public String insert(@Valid @RequestBody Lotto lotto) {
         log.info("insert Params {} ", lotto.toString());
 
         lottoService.insert(lotto);

@@ -1,5 +1,6 @@
 package evengom.lotto.service.impl;
 
+import evengom.lotto.Exception.RoundAlreadyExistException;
 import evengom.lotto.domain.Lotto;
 import evengom.lotto.model.LottoDto;
 import evengom.lotto.model.NumberDto;
@@ -108,7 +109,8 @@ public class LottoServiceImpl implements LottoService {
             lottoRepository.insert(lotto);
         }else{
             log.info("이미 존재하는 회차");
-            //exception 추후에 추가
+            //exception 추가
+            throw new RoundAlreadyExistException(String.format("[%s] round already exist", lotto.getRound()));
         }
     }
 
