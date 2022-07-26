@@ -2,6 +2,7 @@ package evengom.lotto.service.impl;
 
 import evengom.lotto.Exception.RoundAlreadyExistException;
 import evengom.lotto.domain.Lotto;
+import evengom.lotto.model.ConsecutiveDto;
 import evengom.lotto.model.LottoDto;
 import evengom.lotto.model.NumberDto;
 import evengom.lotto.repository.LottoRepository;
@@ -23,6 +24,10 @@ import java.util.stream.IntStream;
 public class LottoServiceImpl implements LottoService {
 
     private final LottoRepository lottoRepository;
+    private static final List<ConsecutiveDto> consList = new ArrayList<>();
+    private static int seq = 0;
+    private static List<Integer> currList = new ArrayList<>();
+
 
     @Override
     public List<LottoDto> selectAll() {
@@ -48,7 +53,7 @@ public class LottoServiceImpl implements LottoService {
     }
 
     @Override
-    public List<NumberDto>selectMostFrequentNumbers() {
+    public List<NumberDto> selectMostFrequentNumbers() {
 
         List<Lotto> lottoList = lottoRepository.findAll();
         //로또 추첨된 번호들 1개의 list로
@@ -60,9 +65,9 @@ public class LottoServiceImpl implements LottoService {
     }
 
     @Override
-    public List<LottoDto> selectConsecutiveList() {
-        List<Lotto> lottoList = lottoRepository.findLatest(2);
-        List<LottoDto> lottoDtoList =  lottoList.stream()
+    public List<ConsecutiveDto>  selectConsecutiveList() {
+        List<Lotto> lottoList = lottoRepository.findLatest(3);
+        List<LottoDto> lottoDtoList = lottoList.stream()
                 .map(LottoDto::new)
                 .collect(Collectors.toList());
 
@@ -83,20 +88,80 @@ public class LottoServiceImpl implements LottoService {
          * 연속된 번호?
          * */
 
+        for (int i = 0; i < lottoDtoList.size(); i++) {
 
-        List<Integer> list1 = transformDtoToIntList(lottoDtoList.get(0));
-        List<Integer> list2 = transformDtoToIntList(lottoDtoList.get(1));
+            compareHaveSameNum(lottoDtoList, i, i+1, false);
+        }
 
-        System.out.println(" 1 " + list1 );
-        System.out.println(" 2 " + list2 );
-        list1.retainAll(list2);
+        return consList;
+    }
 
-        System.out.println(" retain1 " + list1);
-        System.out.println(" retain2 " + list2);
+    private void compareHaveSameNum(List<LottoDto> lottoDtoList, int currentIdx, int nextIdx, boolean isCon) {
+        System.out.println("curr : " + currentIdx + "  next : " + nextIdx );
+        // 여기에 && currentIdx == lottoDtoList.size()
+
+        if(nextIdx < lottoDtoList.size()){
+            List<Integer> list1 = transformDtoToIntList(lottoDtoList.get(currentIdx));
+            List<Integer> list2 = transformDtoToIntList(lottoDtoList.get(nextIdx));
+
+            //수정 needed
+            if(isCon){
+                list1 = currList;
+            }else{
+                list1 = transformDtoToIntList(lottoDtoList.get(currentIdx));
+                currList = list1;
+                seq++;
+            }
+            currList.retainAll(list2);
+
+            System.out.println(" retain1 " + list1.size());
+            System.out.println(" retain1 " + list1);
+
+            /*
+             list1이 들어올때마다 값이 reset 된다
+
+             seq ++ 시점?
+             */
 
 
+            if(currList.size() > 0) {
 
-        return null;
+                System.out.println("list is not empty  seq : "  + seq);
+                IntStream.range(0, currList.size()).forEach(i -> {
+                    saveConsecutiveData(currList.get(i), lottoDtoList.get(currentIdx).getRound(),lottoDtoList.get(nextIdx).getRound() ,isCon);
+                });
+                compareHaveSameNum(lottoDtoList,currentIdx, nextIdx+1, true);
+            }
+        }
+
+
+    }
+
+    private void saveConsecutiveData(int num,int round, int comround, boolean isCon){
+        System.out.println("saveConsecutiveData" );
+        System.out.println("num : " + num + ", round " + round + "  comround: " +comround);
+        //조건 추가
+        if(!checkConNumhasRound(num, isCon ? round : comround)){
+            System.out.println("nonMatch");
+            List<Integer> roundList = new LinkedList<>();
+            roundList.add(round);
+            roundList.add(comround);
+            ConsecutiveDto consecutiveDto = new ConsecutiveDto(seq, num, 1, roundList);
+            consList.add(consecutiveDto);
+        }else{
+            System.out.println("match " + seq);
+            ConsecutiveDto conDto = consList.stream().filter(consecutiveDto -> consecutiveDto.getSeq() == seq).findFirst().get();
+            conDto.setCount(conDto.getCount() + 1);
+            List<Integer> rounds = conDto.getRounds();
+            rounds.add(comround);
+            consList.add(conDto);
+        }
+    }
+
+    private boolean checkConNumhasRound(int num, int round){
+        System.out.println("checkConNumhasRound");
+         return consList.stream().anyMatch(dto -> dto.getSeq() == seq && dto.getConNum() == num && dto.getRounds().stream().anyMatch(r -> r == round ));
+         //if true 초복 중복 말복
     }
 
     @Override
@@ -104,19 +169,19 @@ public class LottoServiceImpl implements LottoService {
         //당첨회차 validation
         log.info("service insert");
         boolean isPresent = Optional.ofNullable(lottoRepository.finOne(lotto.getRound())).isPresent();
-        if(!isPresent) {
-            log.info("is not Present " , isPresent);
+        if (!isPresent) {
+            log.info("is not Present ", isPresent);
             lottoRepository.insert(lotto);
-        }else{
+        } else {
             log.info("이미 존재하는 회차");
             //exception 추가
             throw new RoundAlreadyExistException(String.format("[%s] round already exist", lotto.getRound()));
         }
     }
 
-    private List<Integer> transformToIntList(List<Lotto> lottoList){
+    private List<Integer> transformToIntList(List<Lotto> lottoList) {
         List<Integer> numberList = new ArrayList<>();
-        for (Lotto lotto : lottoList){
+        for (Lotto lotto : lottoList) {
             numberList.add(lotto.getFirst());
             numberList.add(lotto.getSecond());
             numberList.add(lotto.getThird());
@@ -129,7 +194,7 @@ public class LottoServiceImpl implements LottoService {
         return numberList;
     }
 
-    private List<Integer> transformDtoToIntList(LottoDto lottoDto){
+    private List<Integer> transformDtoToIntList(LottoDto lottoDto) {
         List<Integer> numberList = new ArrayList<>();
         numberList.add(lottoDto.getFirst());
         numberList.add(lottoDto.getSecond());
@@ -142,7 +207,7 @@ public class LottoServiceImpl implements LottoService {
         return numberList;
     }
 
-    private List<NumberDto> transformToNumberDtoList(List<Integer> numberList){
+    private List<NumberDto> transformToNumberDtoList(List<Integer> numberList) {
         //로또 번호들 중복횟수
         Map<Integer, Integer> map = numberList.stream().collect(Collectors.toMap(Function.identity(), value -> 1, Integer::sum));
 
@@ -153,13 +218,13 @@ public class LottoServiceImpl implements LottoService {
         IntStream.range(0, keyList.size()).forEach(i -> {
             int key = keyList.get(i);
             int dup = valueList.get(i);
-            numberDtoList.add(new NumberDto(key,dup));
+            numberDtoList.add(new NumberDto(key, dup));
         });
 
         List<NumberDto> sortedList = numberDtoList.stream()
                 .sorted(Comparator.comparingInt(NumberDto::getDuplication).reversed())
                 .collect(Collectors.toList())
-                .subList(0,10);
+                .subList(0, 10);
 
         return sortedList;
     }

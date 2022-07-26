@@ -1,6 +1,7 @@
 package evengom.lotto.service;
 
 import evengom.lotto.domain.Lotto;
+import evengom.lotto.model.ConsecutiveDto;
 import evengom.lotto.model.LottoDto;
 import evengom.lotto.model.NumberDto;
 
@@ -18,5 +19,5 @@ public interface LottoService {
 
     void insert(Lotto lotto);
 
-    List<LottoDto> selectConsecutiveList();
+    List<ConsecutiveDto> selectConsecutiveList();
 }

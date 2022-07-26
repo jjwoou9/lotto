@@ -1,6 +1,7 @@
 package evengom.lotto.controller;
 
 import evengom.lotto.domain.Lotto;
+import evengom.lotto.model.ConsecutiveDto;
 import evengom.lotto.model.LottoDto;
 import evengom.lotto.model.NumberDto;
 import evengom.lotto.repository.LottoRepository;
@@ -48,10 +49,12 @@ public class LottoApiController {
     }
 
     @GetMapping("/consecutive")
-    public List<LottoDto> getConsecutive(){
-        List<LottoDto> consecutiveList = lottoService.selectConsecutiveList();
+    public List<ConsecutiveDto> getConsecutive(){
+        List<ConsecutiveDto> consecutiveDtos = lottoService.selectConsecutiveList();
 
-        return null;
+        log.info(consecutiveDtos.get(0).toString());
+        log.info(String.valueOf(consecutiveDtos.size()));
+        return consecutiveDtos;
     }
 
     @PostMapping("/")
