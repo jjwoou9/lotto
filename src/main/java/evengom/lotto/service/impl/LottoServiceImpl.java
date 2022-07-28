@@ -86,82 +86,98 @@ public class LottoServiceImpl implements LottoService {
          *
          * 같으면 몇번 연속됐는지?
          * 연속된 번호?
+         *  ex 29, 41
+         * dto29추가, dto41추가
+         *
          * */
 
-        for (int i = 0; i < lottoDtoList.size(); i++) {
 
-            compareHaveSameNum(lottoDtoList, i, i+1, false);
+        /*
+        1023 1022 비교
+        retain? > 0
+        retain한 list 만큼 loop 돌려서 저장
+         */
+
+        for (int i = 0; i < lottoDtoList.size(); i++) {
+            System.out.println(" i : " + i);
+            compareHaveSameNum(lottoDtoList, i, i+1);
         }
 
         return consList;
     }
 
-    private void compareHaveSameNum(List<LottoDto> lottoDtoList, int currentIdx, int nextIdx, boolean isCon) {
-        System.out.println("curr : " + currentIdx + "  next : " + nextIdx );
+    private void compareHaveSameNum(List<LottoDto> lottoDtoList, int currentIdx, int nextIdx) {
+        System.out.println("compareHaveSameNum : " + currentIdx + "  next : " + nextIdx  + " size: " + lottoDtoList.size());
         // 여기에 && currentIdx == lottoDtoList.size()
 
+
         if(nextIdx < lottoDtoList.size()){
+            System.out.println("??????????????????");
             List<Integer> list1 = transformDtoToIntList(lottoDtoList.get(currentIdx));
             List<Integer> list2 = transformDtoToIntList(lottoDtoList.get(nextIdx));
 
-            //수정 needed
-            if(isCon){
-                list1 = currList;
-            }else{
-                list1 = transformDtoToIntList(lottoDtoList.get(currentIdx));
-                currList = list1;
-                seq++;
-            }
-            currList.retainAll(list2);
+            list1.retainAll(list2);
 
-            System.out.println(" retain1 " + list1.size());
             System.out.println(" retain1 " + list1);
 
-            /*
-             list1이 들어올때마다 값이 reset 된다
+            if(list1.size() > 0) {
 
-             seq ++ 시점?
-             */
+                for(int i=0; i< list1.size() ; i++ ){
+//                    saveConsecutiveData(currList.get(i), lottoDtoList.get(currentIdx).getRound(),lottoDtoList.get(nextIdx).getRound() ,isCon);
+                    checkBeforeSave(list1.get(i), lottoDtoList.get(currentIdx).getRound(),lottoDtoList.get(nextIdx).getRound());
+                }
 
-
-            if(currList.size() > 0) {
-
-                System.out.println("list is not empty  seq : "  + seq);
-                IntStream.range(0, currList.size()).forEach(i -> {
-                    saveConsecutiveData(currList.get(i), lottoDtoList.get(currentIdx).getRound(),lottoDtoList.get(nextIdx).getRound() ,isCon);
-                });
-                compareHaveSameNum(lottoDtoList,currentIdx, nextIdx+1, true);
+//                IntStream.range(0, currList.size()).forEach(i -> { //여기가 문제였어 ~~
+//                    saveConsecutiveData(currList.get(i), lottoDtoList.get(currentIdx).getRound(),lottoDtoList.get(nextIdx).getRound() ,isCon);
+//                });
+                if(list1.size() > 1) compareHaveSameNum(lottoDtoList,currentIdx, nextIdx+1);
             }
         }
-
-
-    }
-
-    private void saveConsecutiveData(int num,int round, int comround, boolean isCon){
-        System.out.println("saveConsecutiveData" );
-        System.out.println("num : " + num + ", round " + round + "  comround: " +comround);
-        //조건 추가
-        if(!checkConNumhasRound(num, isCon ? round : comround)){
-            System.out.println("nonMatch");
-            List<Integer> roundList = new LinkedList<>();
-            roundList.add(round);
-            roundList.add(comround);
-            ConsecutiveDto consecutiveDto = new ConsecutiveDto(seq, num, 1, roundList);
-            consList.add(consecutiveDto);
-        }else{
-            System.out.println("match " + seq);
-            ConsecutiveDto conDto = consList.stream().filter(consecutiveDto -> consecutiveDto.getSeq() == seq).findFirst().get();
-            conDto.setCount(conDto.getCount() + 1);
-            List<Integer> rounds = conDto.getRounds();
-            rounds.add(comround);
-            consList.add(conDto);
+        else{
+            System.out.println("else");
         }
     }
 
-    private boolean checkConNumhasRound(int num, int round){
-        System.out.println("checkConNumhasRound");
-         return consList.stream().anyMatch(dto -> dto.getSeq() == seq && dto.getConNum() == num && dto.getRounds().stream().anyMatch(r -> r == round ));
-         //if true 초복 중복 말복
+    private void checkBeforeSave(int num, int round, int comround){
+        boolean isExist = false;
+
+        for(ConsecutiveDto dto : consList){
+            if(dto.getConNum() == num){
+                List<Integer> rounds = dto.getRounds();
+                if(rounds.stream().noneMatch(r -> r == round )){
+                    saveConsecutiveData(num, round ,false);
+                }else if(rounds.stream().noneMatch(r -> r == comround)){
+                    saveConsecutiveData(num, comround, false);
+                }else{
+                    //이미 존재
+                }
+            }
+            else{
+                //넘버 없음
+                isExist = false;
+                saveConsecutiveData(num, round, true);
+                saveConsecutiveData(num, comround, true);
+            }
+        }
+    }
+
+    private void saveConsecutiveData(int num,int round, boolean isNew){
+
+        if(isNew){
+            List<Integer> tempRounds = new ArrayList<>();
+            tempRounds.add(round);
+
+            ConsecutiveDto conDto = new ConsecutiveDto(seq, num, tempRounds.size(), tempRounds);
+            consList.add(conDto);
+
+        }else{
+            ConsecutiveDto conDto = consList.stream().filter(consecutiveDto -> consecutiveDto.getConNum() == num).findFirst().get();
+            List<Integer> tempRounds = conDto.getRounds();
+            tempRounds.add(round);
+            conDto.setRounds(tempRounds);
+            conDto.setCount(tempRounds.size());
+            consList.add(conDto);
+        }
     }
 
     @Override
